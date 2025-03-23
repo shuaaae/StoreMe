@@ -7,25 +7,25 @@
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
-    <!-- Fonts -->
+    
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-    <!-- Scripts -->
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="font-sans text-gray-900 antialiased">
-    <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-[#3b83a1]">
-
-        {{-- StoreMe Logo --}}
+<body class="font-sans text-white antialiased bg-[#0A2540]">
+    <div class="min-h-screen flex flex-col justify-center items-center pt-6 sm:pt-0">
+        
+   
         <div class="mb-4">
             <a href="/">
-                <img src="{{ asset('images/storeme-logo.png') }}" alt="StoreMe Logo" class="w-28 h-auto">
+                <img src="{{ asset('images/storeme-logo.png') }}" alt="StoreMe Logo" class="w-40 h-auto">
             </a>
         </div>
 
-        {{-- Dynamic Page Content --}}
-        <div class="w-full sm:max-w-md px-6 py-8 bg-[#3b83a1] text-white rounded-2xl shadow-lg">
+        
+        <div class="w-full sm:max-w-md px-6 py-8 bg-[#1B4965] text-white rounded-2xl shadow-lg">
             {{ $slot }}
         </div>
     </div>
