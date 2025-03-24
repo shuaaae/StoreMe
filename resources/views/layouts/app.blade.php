@@ -30,7 +30,13 @@
                                     <x-dropdown align="right" width="48">
                                         <x-slot name="trigger">
                                             <button class="inline-flex items-center gap-1 px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-100 bg-transparent hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                                                <span>{{ Auth::user()->name }}</span>
+                                            <img
+                                        src="{{ Auth::user()->profile_picture ? asset('storage/' . Auth::user()->profile_picture) : asset('default-avatar.png') }}"
+                                        alt="Profile"
+                                        class="w-11 h-11 rounded-full object-cover border border-white me-2"
+                                    />
+                                    <span>{{ Auth::user()->name }}</span>
+
 
                                                 {{-- Arrow Down Icon --}}
                                                 <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">

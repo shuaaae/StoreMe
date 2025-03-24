@@ -2,6 +2,11 @@
 
 <x-guest-layout>
     <h2 class="text-center text-2xl font-bold mb-6">Welcome to StoreMe!</h2>
+    @if (session('status'))
+    <div class="mb-4 font-medium text-sm text-green-600">
+        {{ session('status') }}
+    </div>
+@endif
 
     <form method="POST" action="{{ route('login') }}" class="space-y-4">
         @csrf

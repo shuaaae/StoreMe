@@ -6,11 +6,10 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Notifications\CustomVerifyEmail; // ✅ Import your custom email notification
+use App\Notifications\CustomVerifyEmail;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -22,6 +21,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'student_id',
+        'course_year_block',
+        'profile_picture', // ✅ Add the new column
     ];
 
     /**
@@ -52,6 +54,16 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function sendEmailVerificationNotification()
     {
-        $this->notify(new CustomVerifyEmail); // ✅ Send your custom email
+        $this->notify(new CustomVerifyEmail);
+    }
+
+    /**
+     * Accessor for the profile photo URL.
+     */
+    public function getProfilePhotoUrlAttribute(): string
+    {
+        return $this->profile_picture
+            ? asset('storage/' . $this->profile_picture)
+            : asset('images/default-avatar.png'); // ✅ Replace this with your fallback avatar image path
     }
 }
