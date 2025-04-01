@@ -33,4 +33,19 @@ class LockerReservation extends Model
 
         return back()->with('success', 'Locker reserved successfully!');
     }
+
+    public function isExpired()
+{
+    return Carbon::now()->greaterThan($this->reserved_until);
+}
+
+public function isInGracePeriod()
+{
+    return $this->isExpired() && Carbon::now()->lessThanOrEqualTo(Carbon::parse($this->reserved_until)->addMinutes(15));
+}
+
+public function isFullyExpired()
+{
+    return Carbon::now()->greaterThan(Carbon::parse($this->reserved_until)->addMinutes(15));
+}
 }

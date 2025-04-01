@@ -6,65 +6,66 @@ use App\Models\Locker;
 use App\Models\LockerReservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class LockerReservationController extends Controller
 {
     public function reserve(Request $request, Locker $locker)
-    {
-        // Validate the duration input
-        $request->validate([
-            'duration' => 'required|integer|min:1|max:24',
-        ]);
+{
+    $userId = auth()->id();
 
-        // Check if already reserved
-        if ($locker->is_reserved) {
-            return back()->with('error', 'This locker is already reserved.');
-        }
+    // Prevent user from reserving another locker
+    $existingReservation = Locker::where('user_id', $userId)
+        ->where('is_reserved', true)
+        ->first();
 
-        // Cast duration to int
-        $duration = (int) $request->input('duration');
-
-        // Create reservation
-        LockerReservation::create([
-            'user_id' => auth()->id(),
-            'locker_id' => $locker->id,
-            'reserved_at' => now(),
-            'expires_at' => now()->addHours($duration),
-        ]);
-
-        // Mark locker as reserved
-        $locker->update([
-            'is_reserved' => true,
-            'user_id' => auth()->id(), // Store who reserved it
-            'reserved_until' => now()->addHours($duration),
-        ]);
-
-        return redirect()->route('dashboard')->with('success', 'Locker reserved successfully!');
+    if ($existingReservation) {
+        return back()->with('error', 'You already have a reserved locker.');
     }
 
-    public function cancel(Locker $locker)
-    {
-        $reservation = LockerReservation::where('user_id', auth()->id())
-                        ->where('locker_id', $locker->id)
-                        ->latest()
-                        ->first();
+    // Validate and cast to integer
+    $request->validate([
+        'duration' => 'required|integer|min:1|max:24',
+    ]);
 
-        if ($reservation) {
-            $reservation->delete();
+    $duration = (int) $request->duration;
 
-            $locker->update([
-                'is_reserved' => false,
-                'user_id' => null,
-                'reserved_until' => null,
-            ]);
+    // Update the locker
+    $locker->update([
+        'is_reserved' => true,
+        'user_id' => $userId,
+        'reserved_until' => now()->addHours($duration),
+    ]);
 
-            return redirect()->route('dashboard')->with('success', 'Reservation canceled successfully!');
-        }
+    // Save reservation history
+    \App\Models\LockerReservation::create([
+        'locker_id' => $locker->id,
+        'user_id' => $userId,
+        'reserved_at' => now(),
+        'expires_at' => now()->addHours($duration),
+    ]);
 
-        return redirect()->route('dashboard')->with('error', 'No active reservation found.');
-    }
+    return back()->with('success', 'Locker reserved successfully.');
+}
+
+public function cancel(Locker $locker)
+{
+    $locker->update([
+        'is_reserved' => false,
+        'user_id' => null,
+        'reserved_until' => null,
+        'name' => 'Locker ' . $locker->id,
+        'background_color' => null,
+    ]);
+
+    // Optionally delete the reservation record too
+    $locker->reservation()->delete();
+
+    return redirect()->route('dashboard')->with('status', 'Reservation ended.');
+}
+
     
-    public function extend(Locker $locker)
+    public function extend(Request $request, Locker $locker)
 {
     $reservation = LockerReservation::where('user_id', auth()->id())
         ->where('locker_id', $locker->id)
@@ -75,11 +76,20 @@ class LockerReservationController extends Controller
         return back()->with('error', 'No active reservation found.');
     }
 
-    // Extend expires_at by 1 hour
-    $reservation->expires_at = now()->parse($reservation->expires_at)->addHour();
+    $extendHours = (int) $request->input('extend_hours');
+
+    if ($extendHours <= 0) {
+        return back()->with('error', 'Invalid extension hours.');
+    }
+
+    $reservation->expires_at = Carbon::parse($reservation->expires_at)->addHours($extendHours);
     $reservation->save();
 
-    return back()->with('success', 'Reservation extended by 1 hour!');
-}
+    // Update the locker reserved_until field as well
+    $locker->reserved_until = $reservation->expires_at;
+    $locker->save();
+
+    return back()->with('success', 'Reservation extended successfully.');
+    }
 
 }

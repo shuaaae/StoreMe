@@ -8,7 +8,7 @@
     <div class="py-12 text-white">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-[#1b2a41] p-6 rounded-xl shadow-lg">
-                <p>This is the Loyalty Reward page. 🎁</p>
+                <p>Loyalty Rewards coming soon! Stay tuned for exciting perks and benefits. 🎁</p>
                 <!-- Add your points, badges, progress bar, etc. here -->
             </div>
         </div>
