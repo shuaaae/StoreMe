@@ -23,46 +23,49 @@ class LockerReservationController extends Controller
         return back()->with('error', 'You already have a reserved locker.');
     }
 
-    // Validate and cast to integer
+    // Validate input
     $request->validate([
         'duration' => 'required|integer|min:1|max:24',
     ]);
 
     $duration = (int) $request->duration;
 
-    // Update the locker
-    $locker->update([
-        'is_reserved' => true,
-        'user_id' => $userId,
-        'reserved_until' => now()->addHours($duration),
-    ]);
-
-    // Save reservation history
-    \App\Models\LockerReservation::create([
+    // Save reservation to history WITH STATUS
+    LockerReservation::create([
         'locker_id' => $locker->id,
         'user_id' => $userId,
         'reserved_at' => now(),
-        'expires_at' => now()->addHours($duration),
+        'status' => 'pending', // <- THIS IS THE IMPORTANT PART
     ]);
 
-    return back()->with('success', 'Locker reserved successfully.');
+    return back()->with('success', 'Your reservation request is now pending admin approval.');
 }
 
-public function cancel(Locker $locker)
+
+public function cancel(Request $request, Locker $locker)
 {
+    // Step 1: Cancel latest reservation for this locker
+    LockerReservation::where('locker_id', $locker->id)
+        ->where('user_id', auth()->id())
+        ->latest()
+        ->update([
+            'reserved_at' => null,
+            'reserved_until' => null,
+            'status' => 'cancelled',
+        ]);
+
+    // Step 2: Reset the locker fields
     $locker->update([
-        'is_reserved' => false,
         'user_id' => null,
-        'reserved_until' => null,
-        'name' => 'Locker ' . $locker->id,
+        'name' => 'Locker #' . $locker->id,
         'background_color' => null,
+        'note' => null,
+        'is_reserved' => false, // ✅ this line makes it available again
     ]);
 
-    // Optionally delete the reservation record too
-    $locker->reservation()->delete();
-
-    return redirect()->route('dashboard')->with('status', 'Reservation ended.');
+    return redirect()->back()->with('success', 'Reservation cancelled successfully.');
 }
+
 
     
     public function extend(Request $request, Locker $locker)

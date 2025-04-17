@@ -30,11 +30,15 @@
                                     <x-dropdown align="right" width="48">
                                         <x-slot name="trigger">
                                             <button class="inline-flex items-center gap-1 px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-100 bg-transparent hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                                            <img
-                                        src="{{ Auth::user()->profile_picture ? asset('storage/' . Auth::user()->profile_picture) : asset('default-avatar.png') }}"
-                                        alt="Profile"
-                                        class="w-11 h-11 rounded-full object-cover border border-white me-2"
-                                    />
+                                            <img 
+    src="{{ Auth::user()->profile_picture 
+        ? asset('storage/' . Auth::user()->profile_picture) 
+        : asset('images/default-avatar.png') }}" 
+    alt="Profile Photo" 
+    class="w-11 h-11 rounded-full object-cover border border-white"
+/>
+
+
                                     <span>{{ Auth::user()->name }}</span>
 
 
@@ -78,6 +82,7 @@
             <main>
                 {{ $slot }}
             </main>
+            @stack('scripts')
         </div>
     </body>
 </html>

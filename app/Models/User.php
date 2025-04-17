@@ -66,4 +66,10 @@ class User extends Authenticatable implements MustVerifyEmail
             ? asset('storage/' . $this->profile_picture)
             : asset('images/default-avatar.png'); // ✅ Replace this with your fallback avatar image path
     }
+    // app/Models/User.php
+
+protected $casts = [
+    'followed_platforms' => 'array',
+];
+
 }

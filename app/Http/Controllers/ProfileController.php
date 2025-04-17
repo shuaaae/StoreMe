@@ -28,28 +28,44 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-
-        $user->fill($request->validated());
-
+    
+        $changes = [];
+    
+        $validatedData = $request->validated();
+    
+        // Track which fields are being changed
+        foreach ($validatedData as $key => $value) {
+            if ($user->$key !== $value) {
+                $changes[] = $key;
+            }
+        }
+    
+        $user->fill($validatedData);
+    
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
+            $changes[] = 'email';
         }
-
+    
         if ($request->hasFile('profile_picture')) {
             $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-
-            // Optional: delete old photo
+    
             if ($user->profile_picture) {
                 Storage::disk('public')->delete($user->profile_picture);
             }
-
+    
             $user->profile_picture = $path;
+            $changes[] = 'profile picture';
         }
-
+    
         $user->save();
-
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
-    }
+    
+        $message = count($changes)
+            ? 'Successfully updated: ' . implode(', ', $changes)
+            : 'No changes made.';
+    
+        return Redirect::route('profile.edit')->with('status', $message);
+    }    
 
     /**
      * Upload/update only the profile photo.
@@ -73,6 +89,24 @@ class ProfileController extends Controller
 
         return back()->with('status', 'photo-updated');
     }
+
+    /**
+ * Delete the user's profile photo and reset to default.
+ */
+public function deletePhoto(Request $request): RedirectResponse
+{
+    $user = $request->user();
+
+    if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
+        Storage::disk('public')->delete($user->profile_picture);
+    }
+
+    $user->profile_picture = null;
+    $user->save();
+
+    return back()->with('status', 'photo-deleted');
+}
+
 
     /**
      * Delete the user's account.

@@ -19,111 +19,140 @@
         $isExpired = $diffInMinutes < -$gracePeriodMinutes;
     @endphp
 
-    <div class="col-span-6 grid grid-cols-2 gap-4">
-        <!-- Reserved Locker Display -->
-        <div class="p-6 rounded-lg shadow-lg text-left border-4 transform transition hover:shadow-2xl relative flex justify-between items-start"
-             style="background-color: {{ $userLocker->background_color ?? '#f0f4ff' }}; min-height: 100%;" id="reservedLockerCard">
-
-            <div>
-                <!-- Locker Header with Name, Edit & Color -->
-                <div class="flex items-center gap-2 relative">
-    <h2 class="text-lg font-bold text-gray-800" id="lockerNameDisplay">
-        Locker {{ $userLocker->id }} - {{ $userLocker->name }}
-    </h2>
-    <button onclick="toggleLockerNameEdit()" class="text-blue-600 hover:text-blue-800 text-sm">✏️</button>
-    
-    <!-- 🎨 ICON with dropdown -->
-    <div class="relative">
-        <button onclick="toggleColorDropdown()" class="text-xl hover:scale-110 transition">🎨</button>
-        
-        <!-- Dropdown floating near the icon -->
-        <div id="colorDropdown" class="hidden absolute top-6 right-0 z-10 bg-white border border-gray-300 rounded shadow-md">
-            <form method="POST" action="{{ route('lockers.color', $userLocker->id) }}">
-                @csrf
-                @method('PATCH')
-                <select name="background_color" onchange="this.form.submit()"
-                        class="text-sm px-2 py-1 w-36 rounded focus:outline-none">
-                    <option value="#f0f4ff" {{ $userLocker->background_color == '#f0f4ff' ? 'selected' : '' }}>Sky Blue</option>
-                    <option value="#ffe4ec" {{ $userLocker->background_color == '#ffe4ec' ? 'selected' : '' }}>Blush Pink</option>
-                    <option value="#e0ffe4" {{ $userLocker->background_color == '#e0ffe4' ? 'selected' : '' }}>Mint Green</option>
-                    <option value="#fff4d1" {{ $userLocker->background_color == '#fff4d1' ? 'selected' : '' }}>Sunny Yellow</option>
-                </select>
-            </form>
-        </div>
-    </div>
-</div>
-
-
-
-
-                <!-- Locker Image -->
-                <img src="{{ asset('images/locker-reserved.png') }}" alt="Locker Icon"
-                     class="w-24 h-24 object-contain mb-4">
-
-                <!-- Reservation Info -->
-                <p class="mb-2 text-sm"><strong>Reservation Ends:</strong> <span id="lockerReservedUntil">{{ $userLocker->reserved_until }}</span></p>
-                <p class="mb-2 text-sm">
-                    <strong>Time Left:</strong>
-                    <span id="lockerCountdown" class="{{ $isGracePeriod ? 'text-orange-500' : ($isExpired ? 'text-red-600' : 'text-green-600') }} font-semibold">
-                        {{ $isExpired ? 'Expired' : 'Calculating...' }}
-                    </span>
-                </p>
-                <p class="mb-4 text-sm"><strong>Current Payment:</strong> ₱<span id="lockerPayment">Loading...</span></p>
-
-                @if ($isGracePeriod)
-                    <div class="bg-yellow-100 text-yellow-800 text-xs p-2 rounded mb-3 border border-yellow-300">
-                        ⚠️ Your reservation has ended. You have <strong>15 minutes</strong> to extend before it's auto-released.
+    <div class="col-span-6 grid grid-cols-3 gap-4">
+    <!-- Reserved Locker Display and Note -->
+    <div class="col-span-2 p-6 rounded-lg shadow-lg text-left border-4 transform transition hover:shadow-2xl relative"
+         style="background-color: {{ $userLocker->background_color ?? '#f0f4ff' }};" id="reservedLockerCard">
+        <div>
+            <!-- Locker Header -->
+            <div class="flex items-center gap-2">
+                <div id="lockerNameDisplay" class="flex items-center gap-2">
+                    <h2 class="text-lg font-bold text-gray-800">
+                        Locker {{ $userLocker->id }} - {{ $userLocker->name }}
+                    </h2>
+                    <button onclick="toggleLockerNameEdit()" class="text-blue-600 hover:text-blue-800 text-sm">✏️</button>
+                </div>
+                <form method="POST" action="{{ route('lockers.updateName', $userLocker->id) }}"
+                      id="lockerNameForm" class="hidden flex items-center gap-2">
+                    @csrf
+                    @method('PATCH')
+                    <input type="text" name="name" value="{{ $userLocker->name }}"
+                           class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none" required>
+                    <button type="submit" class="text-green-600 hover:text-green-800 text-sm">✔️</button>
+                    <button type="button" onclick="cancelLockerNameEdit()" class="text-red-600 hover:text-red-800 text-sm">✖️</button>
+                </form>
+                <div class="relative">
+                    <button onclick="toggleColorDropdown()" class="text-xl hover:scale-110 transition">🎨</button>
+                    <div id="colorDropdown" class="hidden absolute top-6 right-0 z-10 bg-white border border-gray-300 rounded shadow-md">
+                        <form method="POST" action="{{ route('lockers.color', $userLocker->id) }}">
+                            @csrf
+                            @method('PATCH')
+                            <select name="background_color" onchange="this.form.submit()" class="text-sm px-2 py-1 w-36 rounded focus:outline-none">
+                                <option value="#f0f4ff" {{ $userLocker->background_color == '#f0f4ff' ? 'selected' : '' }}>Sky Blue</option>
+                                <option value="#ffe4ec" {{ $userLocker->background_color == '#ffe4ec' ? 'selected' : '' }}>Blush Pink</option>
+                                <option value="#e0ffe4" {{ $userLocker->background_color == '#e0ffe4' ? 'selected' : '' }}>Mint Green</option>
+                                <option value="#fff4d1" {{ $userLocker->background_color == '#fff4d1' ? 'selected' : '' }}>Sunny Yellow</option>
+                            </select>
+                        </form>
                     </div>
-                @endif
-
-                <!-- Extend and Cancel -->
-                <div class="flex flex-col sm:flex-row sm:items-center gap-2 justify-start">
-                    <form id="extendForm" method="POST" action="{{ route('lockers.extend', $userLocker->id) }}"
-                          class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        @csrf
-                        @method('PATCH')
-                        <input type="number" name="extend_hours" min="1" max="24"
-                               placeholder="Extend (hours)"
-                               class="border border-gray-300 p-2 rounded w-full sm:w-40" required
-                               {{ $isExpired ? 'disabled' : '' }}>
-                        <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 w-full sm:w-auto"
-                                {{ $isExpired ? 'disabled' : '' }}>
-                            Extend
-                        </button>
-                    </form>
-
-                    <form id="cancelForm" method="POST" action="{{ route('lockers.cancel', $userLocker->id) }}">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 min-w-[100px] h-[42px]">
-    End Now
-</button>
-                    </form>
                 </div>
             </div>
 
-            <!-- Note Section -->
-            <div class="ml-6 w-1/2">
-                <form method="POST" action="{{ route('lockers.note', $userLocker->id) }}">
-                    @csrf
-                    @method('PATCH')
-                    <label for="locker_note" class="block text-sm font-semibold mb-2">Note (What’s inside your locker):</label>
-                    <textarea name="note" id="locker_note" rows="6"
-                              class="w-full border border-gray-300 rounded px-3 py-2 text-sm resize-none"
-                              placeholder="Ex: Books, PE uniform, charger...">{{ $userLocker->note }}</textarea>
-                    <button type="submit"
-                            class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm float-right">
-                        Save Note
-                    </button>
-                </form>
-            </div>
+            <img src="{{ asset('images/locker-reserved.png') }}" alt="Locker Icon" class="w-24 h-24 object-contain my-4">
+
+            @if (isset($latestReservation) && $latestReservation->status === 'active')
+                <p class="text-sm"><strong>Reservation Start:</strong> {{ $userLocker->reserved_at }}</p>
+                <p class="text-sm">
+                    <strong>Time Use:</strong>
+                    <span id="countdownTimer" class="text-green-600 font-semibold">Loading...</span>
+
+                    <span id="reservedAtData" class="hidden">
+    {{ \Carbon\Carbon::parse(optional($latestReservation)->reserved_at)->format('Y-m-d H:i:s') }}
+</span>
+<span id="reservedUntilData" class="hidden">
+    {{ \Carbon\Carbon::parse(optional($latestReservation)->reserved_until)->format('Y-m-d H:i:s') }}
+</span>
+
+                </p>
+                @php
+    $payment = 'N/A';
+    if (isset($latestReservation) && $latestReservation->status === 'active') {
+        $start = \Carbon\Carbon::parse($latestReservation->reserved_at);
+        $end = \Carbon\Carbon::parse($latestReservation->reserved_until);
+        $hours = ceil($end->floatDiffInHours($start));
+        $payment = $hours * 10;
+    }
+@endphp
+<p class="text-sm">
+    <strong>Total Payment:</strong> ₱<span id="lockerPayment">{{ $payment }}</span>
+</p>
+            @else
+                <div class="bg-yellow-100 text-yellow-800 text-xs p-2 rounded mt-2 border border-yellow-300">
+                    ⏳ Your reservation is <strong>pending</strong>. Please wait for admin approval.
+                </div>
+            @endif
         </div>
 
-        <!-- Reservation History -->
-        <div class="bg-white p-4 rounded-lg shadow">
-            <h4 class="font-semibold text-sm mb-2 text-gray-700">🔁 Reservation History</h4>
-            <div class="overflow-x-auto">
-                <table class="text-xs w-full">
+<!-- Reservation Action Buttons -->
+@php
+    $expired = isset($latestReservation) && \Carbon\Carbon::now()->greaterThan(\Carbon\Carbon::parse($latestReservation->reserved_until));
+@endphp
+
+<div class="mt-4 flex flex-col sm:flex-row gap-2">
+@if (isset($latestReservation) && $latestReservation->status === 'active' && $expired)
+    <!-- Show Extend Button only if expired -->
+    <form method="POST" action="{{ route('lockers.extend', $userLocker->id) }}" class="flex gap-2 w-full">
+        @csrf
+        @method('PATCH')
+        <input type="number" name="extend_hours" min="1" max="24"
+               class="border border-gray-300 text-sm rounded px-2 py-1 w-full"
+               placeholder="Add Hours" required>
+        <button type="submit"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded text-sm w-1/2">
+            Request Extension
+        </button>
+    </form>
+    @elseif(!$expired && isset($latestReservation) && $latestReservation->status !== 'pending')
+    <p class="text-sm italic text-gray-500">You can only request an extension once your time has expired.</p>
+@endif
+
+
+    @if (isset($latestReservation) && $latestReservation->status === 'pending')
+        <!-- Cancel Button for Pending -->
+        <form method="POST" action="{{ route('lockers.cancel', $userLocker->id) }}" class="w-full"
+              onsubmit="return confirm('Are you sure you want to cancel this pending reservation?');">
+            @csrf
+            @method('DELETE')
+            <button type="submit"
+                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm w-full">
+                Cancel
+            </button>
+        </form>
+    @endif
+</div>
+
+        <!-- Note Section BELOW locker info -->
+        <div class="mt-6">
+            <form method="POST" action="{{ route('lockers.note', $userLocker->id) }}">
+                @csrf
+                @method('PATCH')
+                <label for="locker_note" class="block text-sm font-semibold mb-2">Note (What’s inside your locker):</label>
+                <textarea name="note" id="locker_note" rows="6"
+                          class="w-full border border-gray-300 rounded px-3 py-2 text-sm resize-none"
+                          placeholder="Ex: Books, PE uniform, charger...">{{ $userLocker->note }}</textarea>
+                <button type="submit"
+                        class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm float-right">
+                    Save Note
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reservation History SEPARATE CARD -->
+    <div class="bg-white p-4 rounded-lg shadow col-span-1">
+        <h4 class="font-semibold text-sm mb-2 text-gray-700">🔁 Reservation History</h4>
+        <div class="overflow-x-auto">
+            <table class="text-xs w-full">
                 <thead>
                     <tr class="text-gray-600 text-left">
                         <th class="py-1 pr-3">Date</th>
@@ -132,16 +161,21 @@
                         <th class="py-1">Status</th>
                     </tr>
                 </thead>
-                    <tbody>
+                <tbody>
                     @forelse ($userReservations as $res)
-                    @php
-    $start = \Carbon\Carbon::parse($res->reserved_at);
-    $end = \Carbon\Carbon::parse($res->reserved_until);
-    $hours = ceil(abs($end->floatDiffInHours($start))); // 👈 abs() added here
-    $payment = $hours * 10;
-@endphp
-<tr class="text-gray-700">
-    <td class="py-1 pr-3">{{ $start->format('M d, Y h:i A') }}</td>
+                        @php
+                            $start = \Carbon\Carbon::parse($res->reserved_at);
+                            $end = \Carbon\Carbon::parse($res->reserved_until);
+                            $hours = ceil(abs($end->floatDiffInHours($start)));
+                            $payment = $hours * 10;
+                        @endphp
+                        <tr class="text-gray-700">
+                            <td class="py-1 pr-3">{{ $start->format('M d, Y h:i A') }}</td>
+                            @if ($res->status === 'pending')
+    <td class="py-1 pr-3">N/A</td>
+    <td class="py-1 pr-3">₱N/A</td>
+    <td class="py-1 text-yellow-500 font-medium">Pending</td>
+@else
     <td class="py-1 pr-3">{{ $hours }} hr{{ $hours > 1 ? 's' : '' }}</td>
     <td class="py-1 pr-3">₱{{ $payment }}</td>
     <td class="py-1">
@@ -149,51 +183,49 @@
             {{ $res->payment_status ?? 'Unpaid' }}
         </span>
     </td>
-</tr>
-
-@empty
-    <tr>
-        <td colspan="4" class="text-gray-400 py-2 italic">No recent reservations.</td>
-    </tr>
-@endforelse
-
-                    </tbody>
-                </table>
-            </div>
+@endif
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="text-gray-400 py-2 italic">No recent reservations.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 @endif
-
-
-
                 {{-- Other Lockers --}}
                 @foreach ($otherLockers as $locker)
-                    <div class="bg-white p-4 rounded-lg shadow-lg text-center transition duration-200 hover:scale-105 transform">
-                        <img src="{{ $locker->is_reserved ? asset('images/locker-reserved.png') : asset('images/locker-available.png') }}"
-                            alt="Locker Icon"
-                            class="w-20 h-20 object-contain mx-auto mb-2 cursor-pointer transition-transform duration-200 hover:scale-110"
-                            onclick="openModal({{ $locker->id }}, '{{ $locker->user_id === Auth::id() ? $locker->name : '' }}', {{ $locker->is_reserved ? 'true' : 'false' }}, '{{ $locker->reserved_until }}', '{{ $locker->user_id }}', '{{ optional($reservations[$locker->id] ?? null)->reserved_at }}')"
-                            <h3 class="mt-2 font-bold text-gray-800">
-    @if ($locker->user_id === Auth::id())
-        {{ $locker->name }}
-    @else
-        Locker {{ $locker->id }}
-    @endif
-</h3>
+                <div class="bg-white p-4 rounded-lg shadow-lg text-center transition duration-200 hover:scale-105 transform">
+    <img src="{{ $locker->is_reserved ? asset('images/locker-reserved.png') : asset('images/locker-available.png') }}"
+        alt="Locker Icon"
+        class="w-20 h-20 object-contain mx-auto mb-2 cursor-pointer transition-transform duration-200 hover:scale-110"
+        onclick="openModal({{ $locker->id }}, '{{ $locker->user_id === Auth::id() ? $locker->name : '' }}', {{ $locker->is_reserved ? 'true' : 'false' }}, '{{ $locker->reserved_until }}', '{{ $locker->user_id }}', '{{ optional($reservations[$locker->id] ?? null)->reserved_at }}')">
 
-                        @if ($locker->is_reserved)
-                            <p class="text-sm text-red-500">⛔ Reserved</p>
-                        @else
-                            @if (!$userLocker)
-                                <p class="text-sm text-green-600">✅ Available</p>
-                                <button onclick="openModal({{ $locker->id }}, '{{ $locker->name }}', false, '', '{{ Auth::id() }}')"
-                                        class="mt-2 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
-                                    Reserve
-                                </button>
-                            @else
-                                <p class="text-sm text-yellow-600 font-medium">You already reserved another locker</p>
-                            @endif
-                        @endif
+    <h3 class="mt-2 font-bold text-gray-800">
+        @if ($locker->user_id === Auth::id())
+            {{ $locker->name }}
+        @else
+            Locker {{ $locker->id }}
+        @endif
+    </h3>
+
+    @if ($locker->is_reserved)
+    <p class="text-sm text-red-500">⛔ Reserved</p>
+@else
+    @if (!$userLocker)
+        <p class="text-sm text-green-600">✅ Available</p>
+        <button 
+            onclick="openModal({{ $locker->id }}, '{{ addslashes($locker->name) }}', false, '', '{{ Auth::id() }}')"
+            class="mt-2 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+            Reserve
+        </button>
+    @else
+        <p class="text-sm text-yellow-600 font-medium">You already reserved another locker</p>
+    @endif
+@endif
                     </div>
                 @endforeach
             </div>
@@ -211,13 +243,14 @@
         const cancelForm = document.getElementById('cancelForm');
         const noteForm = document.getElementById('noteForm');
         const noteField = document.getElementById('locker_note');
-
+        form.action = `/lockers/${lockerId}/reserve`; 
         const isOwner = parseInt(userId) === {{ Auth::id() }};
 
         // Show name only if owner
         document.getElementById('modalLockerName').textContent = isOwner ? name : `Locker ${lockerId}`;
 
         form.action = `/lockers/${lockerId}/reserve`;
+console.log("Form action set to:", form.action);
         extendForm.action = `/lockers/${lockerId}/extend`;
         cancelForm.action = `/lockers/${lockerId}/cancel`;
         noteForm.action = `/lockers/${lockerId}/note`;
@@ -275,8 +308,16 @@
         document.getElementById('lockerModal').classList.add('hidden');
     }
 
-    const reservedAt = '{{ $reservedAtValue }}';
-    const reservedUntil = new Date(document.getElementById('lockerReservedUntil')?.textContent);
+    const reservedAtText = document.getElementById('reservedAtData')?.innerText.trim();
+const reservedUntilText = document.getElementById('reservedUntilData')?.innerText.trim();
+const reservedAtDate = reservedAtText ? new Date(reservedAtText.replace(' ', 'T')) : null;
+const reservedUntilDate = reservedUntilText ? new Date(reservedUntilText.replace(' ', 'T')) : null;
+
+if (reservedAtDate && reservedUntilDate && document.getElementById('lockerPayment')) {
+    const totalHours = Math.ceil((reservedUntilDate - reservedAtDate) / (1000 * 60 * 60));
+    document.getElementById('lockerPayment').textContent = totalHours * 10;
+}
+
 
     if (reservedAt && reservedUntil && document.getElementById('lockerPayment')) {
         const reservedAtDate = new Date(reservedAt);
@@ -337,9 +378,6 @@
     }
 </script>
 
-
-
-    <!-- Modal for Reservation/Locker Details -->
 <!-- Modal for Reservation/Locker Details -->
 <div id="lockerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
     <div class="flex items-center justify-center min-h-screen">
@@ -350,18 +388,17 @@
             <p id="modalLockerStatus" class="mb-4 text-sm text-gray-700"></p>
 
             <div id="modalContent" class="space-y-4">
-    <!-- Reservation Section -->
+    <!-- Reservation Form -->
     <div id="reservationFormContainer" class="space-y-4">
-        <form id="reserveForm" method="POST">
-            @csrf
-            <label for="duration" class="block mb-1 text-sm font-medium">Reserve for (hours)</label>
-            <input type="number" name="duration" id="duration" min="1" max="24"
-                   class="w-full border border-gray-300 p-2 rounded mb-2" required>
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                Confirm Reservation
-            </button>
-        </form>
-    </div>
+    <form id="reserveForm" method="POST">
+        @csrf
+        <p class="text-sm text-gray-800">Click confirm to request reservation. This will be marked as <strong>Pending</strong> until approved by the admin.</p>
+        <button type="submit" class="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">
+            Confirm Reservation
+        </button>
+    </form>
+</div>
+
 
     <!-- Info and Actions: Only shows when locker is reserved -->
     <div id="lockerInfoContainer" class="hidden space-y-3 text-sm">
@@ -410,6 +447,56 @@
         </div>
     </div>
 </div>
+@if(isset($latestReservation) && $latestReservation->status === 'active')
+<script>
+    window.addEventListener('DOMContentLoaded', function () {
+    const reservedAtText = document.getElementById('reservedAtData')?.innerText.trim();
+    const reservedUntilText = document.getElementById('reservedUntilData')?.innerText.trim();
+    const countdownSpan = document.getElementById('countdownTimer');
+    const paymentSpan = document.getElementById('lockerPayment');
 
+    if (reservedAtText && reservedUntilText) {
+        const reservedAt = new Date(reservedAtText.replace(' ', 'T'));
+        const reservedUntil = new Date(reservedUntilText.replace(' ', 'T'));
+
+        if (countdownSpan) {
+            function updateCountdown() {
+                const now = new Date();
+                const diff = reservedUntil - now;
+
+                if (diff <= 0) {
+                    countdownSpan.textContent = "Expired";
+                    countdownSpan.className = "text-red-600 font-semibold";
+                    return;
+                }
+
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                countdownSpan.textContent = `${hours}h ${minutes}m ${seconds}s`;
+
+                if (hours >= 1) {
+                    countdownSpan.className = "text-green-600 font-semibold";
+                } else if (minutes >= 30) {
+                    countdownSpan.className = "text-yellow-500 font-semibold";
+                } else {
+                    countdownSpan.className = "text-red-600 font-semibold";
+                }
+            }
+
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        }
+
+        if (paymentSpan) {
+            const totalHours = Math.ceil((reservedUntil - reservedAt) / (1000 * 60 * 60));
+            paymentSpan.textContent = totalHours * 10;
+        }
+    }
+});
+
+</script>
+@endif
 
 </x-app-layout>

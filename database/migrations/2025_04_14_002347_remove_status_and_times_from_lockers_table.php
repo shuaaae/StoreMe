@@ -12,14 +12,16 @@ return new class extends Migration
     public function up()
 {
     Schema::table('lockers', function (Blueprint $table) {
-        $table->text('note')->nullable()->change();
+        $table->dropColumn(['status', 'reserved_at', 'reserved_until']);
     });
 }
 
 public function down()
 {
     Schema::table('lockers', function (Blueprint $table) {
-        $table->dropColumn('note');
+        $table->string('status')->nullable();
+        $table->timestamp('reserved_at')->nullable();
+        $table->timestamp('reserved_until')->nullable();
     });
 }
 
