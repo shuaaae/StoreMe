@@ -9,5 +9,6 @@ export default defineConfig({
         ],
         refresh: true,
     })],
+    base: '/locker/public/', // <-- Add this line
 });
 
