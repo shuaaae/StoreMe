@@ -25,6 +25,12 @@
         </button>
     </form>
 
+    <!-- Download PDF Button -->
+<a href="{{ route('admin.reservations.export.pdf') }}"
+   class="inline-block mb-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded shadow">
+    ⬇️ Download PDF
+</a>
+
     <!-- TABLE -->
     <div class="overflow-x-auto">
         <table class="w-full text-sm text-white">
@@ -40,34 +46,42 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($reservations as $res)
-                @php
+    @forelse($reservations as $res)
+    @php
     $start = $res->reserved_at ? \Carbon\Carbon::parse($res->reserved_at) : null;
     $end = $res->reserved_until ? \Carbon\Carbon::parse($res->reserved_until) : null;
+    $status = $res->status;
 
-    if ($start && $end && $start->lt($end)) {
-        $hours = max(1, ceil($end->floatDiffInHours($start))); // Force at least 1 hour
+    if ($start && $end && $status !== 'pending') {
+        $hours = ceil(abs($end->floatDiffInHours($start))); // always positive
+        $durationDisplay = $hours . ' hr' . ($hours > 1 ? 's' : '');
         $payment = '₱' . ($hours * 10);
     } else {
-        $hours = null;
-        $payment = '₱0';
+        $durationDisplay = 'N/A';
+        $payment = '₱N/A';
     }
+
+    $paymentStatus = $res->payment_status ?? 'Unpaid';
+    $paymentClass = $paymentStatus === 'Paid' ? 'text-green-400 font-semibold' : 'text-red-400 font-semibold';
 @endphp
-                    <tr class="border-b border-gray-600 hover:bg-[#2e3b55] transition">
-                        <td class="p-2">{{ $res->user->name ?? 'N/A' }}</td>
-                        <td class="p-2">Locker #{{ $res->locker->number ?? 'N/A' }}</td>
-                        <td class="p-2">{{ $start->format('M d, Y h:i A') }}</td>
-                        <td class="p-2">{{ $hours ? $hours . ' hr(s)' : 'N/A' }}</td>
-                        <td class="p-2">{{ $payment }}</td>
-                        <td class="p-2">{{ ucfirst($res->status) }}</td>
-                        <td class="p-2">{{ $res->payment_status ?? 'Unpaid' }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="text-center text-gray-400 py-4">No reservations found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
+
+        <tr class="border-b border-gray-600 hover:bg-[#2e3b55] transition">
+            <td class="p-2">{{ $res->user->name ?? 'N/A' }}</td>
+            <td class="p-2">Locker #{{ $res->locker->number ?? 'N/A' }}</td>
+            <td class="p-2">{{ $start ? $start->format('M d, Y h:i A') : 'N/A' }}</td>
+            <td class="p-2">{{ $durationDisplay }}</td>
+            <td class="p-2">{{ $payment }}</td>
+            <td class="p-2">{{ ucfirst($status) }}</td>
+            <td class="p-2">
+                <span class="{{ $paymentClass }}">{{ $paymentStatus }}</span>
+            </td>
+        </tr>
+    @empty
+        <tr>
+            <td colspan="7" class="text-center text-gray-400 py-4">No reservations found.</td>
+        </tr>
+    @endforelse
+</tbody>
         </table>
     </div>
 

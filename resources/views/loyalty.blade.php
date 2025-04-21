@@ -44,6 +44,22 @@
                             <div id="progressBar" class="bg-yellow-400 h-3 rounded-full" style="width: {{ $userPoints }}%"></div>
                         </div>
                     </div>
+                    @if ($userPoints >= 100)
+    <div class="mt-4 flex flex-col items-center justify-center space-y-2">
+        <div class="flex items-center space-x-2">
+            <img src="{{ asset('images/badge.png') }}" alt="Reward Badge" class="h-10 w-10 animate-pulse">
+            <span class="text-yellow-300 font-bold text-lg">Congratulations You Earned a StoreMe Pin Badge!</span>
+        </div>
+
+        {{-- Download Button --}}
+        <a href="{{ asset('images/badge.png') }}" download="LoyaltyChampionBadge.png"
+           class="mt-2 inline-block bg-yellow-400 hover:bg-yellow-500 text-[#0f172a] font-semibold py-2 px-4 rounded shadow">
+            🎉 Download Your Badge
+        </a>
+    </div>
+@endif
+
+
                 </div>
 
                 <div class="mt-8">

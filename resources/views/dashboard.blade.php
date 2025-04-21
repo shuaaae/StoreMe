@@ -1,6 +1,30 @@
+<style>
+    /* Force readable text color inside light background cards */
+    #reservedLockerCard {
+        color: #1f2937; /* text-gray-800 */
+    }
+
+    #reservedLockerCard strong {
+        color: #1f2937; /* force bold labels to be visible */
+    }
+
+    #reservedLockerCard label,
+    #reservedLockerCard textarea,
+    #reservedLockerCard input,
+    #reservedLockerCard .italic {
+        color: #1f2937 !important;
+    }
+
+    #reservedLockerCard .text-gray-500,
+    #reservedLockerCard .text-gray-400 {
+        color: #4b5563 !important; /* darken muted text */
+    }
+</style>
+
 <x-app-layout>
     <div class="py-12">
-    <div class="max-w-7xl mx-auto px-4 grid grid-cols-6 gap-4 auto-rows-max">
+    <div class="max-w-7xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 auto-rows-max">
+
 
             @php
                 $userLocker = $lockers->firstWhere('user_id', Auth::id());
@@ -497,6 +521,22 @@ if (reservedAtDate && reservedUntilDate && document.getElementById('lockerPaymen
 });
 
 </script>
+@if (session('success'))
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: '{{ session('success') }}',
+            showConfirmButton: false,
+            timer: 2000,
+            width: '300px', // Smaller width
+            padding: '1.5rem',
+            background: '#fefefe',
+            position: 'center',
+        });
+    });
+</script>
 @endif
-
+@endif
 </x-app-layout>

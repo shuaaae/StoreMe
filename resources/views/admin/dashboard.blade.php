@@ -74,21 +74,42 @@
                 <p class="text-sm text-gray-300">Here's a quick overview of what's happening in StoreMe.</p>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-[#23395d] p-4 rounded text-center shadow">
-                        <h4 class="font-semibold">Total Users</h4>
-                        <p class="text-3xl mt-2">{{ \App\Models\User::count() }}</p>
-                    </div>
 
-                    <div class="bg-[#23395d] p-4 rounded text-center shadow">
-                        <h4 class="font-semibold">Lockers Reserved</h4>
-                        <p class="text-3xl mt-2">{{ \App\Models\Locker::whereNotNull('user_id')->count() }}</p>
-                    </div>
+<!-- Total Users -->
+<div class="bg-[#23395d] p-4 rounded text-center shadow">
+    <!-- 👤 User Icon -->
+    <svg class="mx-auto h-6 w-6 text-white mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 20h5v-2a4 4 0 00-3-3.87M9 20h6M9 20v-2a4 4 0 013-3.87M9 20H4v-2a4 4 0 013-3.87M12 14a4 4 0 100-8 4 4 0 000 8z"/>
+    </svg>
+    <h4 class="font-semibold">Total Users</h4>
+    <p class="text-3xl mt-2">{{ \App\Models\User::count() }}</p>
+</div>
 
-                    <div class="bg-[#23395d] p-4 rounded text-center shadow">
-                        <h4 class="font-semibold">Feedback Received</h4>
-                        <p class="text-3xl mt-2">{{ \App\Models\Feedback::count() }}</p>
-                    </div>
-                </div>
+<!-- Lockers Reserved -->
+<div class="bg-[#23395d] p-4 rounded text-center shadow">
+    <!-- 📦 Box Icon -->
+    <svg class="mx-auto h-6 w-6 text-white mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20 12V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v4m18 0v4a2 2 0 01-1 1.73l-7 4a2 2 0 01-2 0l-7-4A2 2 0 014 16v-4m16 0L12 8m0 0L4 12"/>
+    </svg>
+    <h4 class="font-semibold">Lockers Reserved</h4>
+    <p class="text-3xl mt-2">{{ \App\Models\Locker::whereNotNull('user_id')->count() }}</p>
+</div>
+
+<!-- Feedback Received -->
+<div class="bg-[#23395d] p-4 rounded text-center shadow">
+    <!-- 💬 Chat Icon -->
+    <svg class="mx-auto h-6 w-6 text-white mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4.39-1.026L3 20l1.568-4.108A7.963 7.963 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+    </svg>
+    <h4 class="font-semibold">Feedback Received</h4>
+    <p class="text-3xl mt-2">{{ \App\Models\Feedback::count() }}</p>
+</div>
+
+</div>
+
             </div>
 
         </div>
@@ -267,6 +288,14 @@ approveForm.action = `/admin/lockers/${lockerId}/approve`;
             .then(data => {
                 modalTitle.textContent = `Locker ${data.number} Details`;
                 lockerName.textContent = data.user ? `${data.user.name}'s Locker` : `Locker ${data.number}`;
+                 // ⬇️ Add the note display line RIGHT HERE:
+     // ✅ Add this line right after lockerName
+     const lockerNoteBox = document.getElementById('lockerNote');
+    if (lockerNoteBox) {
+        lockerNoteBox.textContent = data.note && data.note.trim() !== '' ? data.note : 'No note provided.';
+    }
+
+
 
                 const approveTriggerBox = document.getElementById('approveTriggerBox');
 const approveForm = document.getElementById('approveForm');
@@ -390,6 +419,96 @@ forceEndButton.addEventListener('click', function () {
     });
 });
 
+</script>
+<!-- ✅ Include SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- ✅ SweetAlert Confirmation Logic -->
+<script>
+document.getElementById('markAsPaidForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = this;
+    Swal.fire({
+        title: 'Mark as Paid?',
+        text: 'This will mark the reservation as fully paid.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, mark it!',
+        background: '#1e293b',
+        color: '#fff',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+});
+
+document.getElementById('approveForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = this;
+    Swal.fire({
+        title: 'Approve Reservation?',
+        text: 'Confirm reservation duration before approving.',
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonColor: '#22c55e',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, approve',
+        background: '#1e293b',
+        color: '#fff',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+});
+
+document.getElementById('forceEndButton')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    Swal.fire({
+        title: 'End Reservation?',
+        text: 'This will immediately end the current reservation.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, end it',
+        background: '#1e293b',
+        color: '#fff',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const lockerId = document.getElementById('lockerModal').getAttribute('data-current-locker');
+            fetch(`/admin/lockers/${lockerId}/end`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Ended!',
+                        text: 'Reservation has been ended.',
+                        icon: 'success',
+                        background: '#1e293b',
+                        color: '#fff',
+                    });
+                    document.getElementById('lockerModal').classList.add('hidden');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    Swal.fire('Error', data.message || 'Something went wrong.', 'error');
+                }
+            })
+            .catch(() => {
+                Swal.fire('Oops!', 'Something went wrong.', 'error');
+            });
+        }
+    });
+});
 </script>
 </body>
 </html>

@@ -13,22 +13,34 @@
         @csrf
         @method('put')
 
-        <div>
+        {{-- Current Password --}}
+        <div class="relative">
             <x-input-label for="update_password_current_password" :value="__('Current Password')" />
-            <x-text-input id="update_password_current_password" name="current_password" type="password" class="mt-1 block w-full" autocomplete="current-password" />
+            <x-text-input id="update_password_current_password" name="current_password" type="password" class="mt-1 block w-full text-black pr-10" autocomplete="current-password" />
             <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2" />
+            <button type="button" onclick="togglePassword('update_password_current_password')" class="absolute right-2 top-9 text-gray-600 hover:text-gray-900">
+                👁️
+            </button>
         </div>
 
-        <div>
+        {{-- New Password --}}
+        <div class="relative">
             <x-input-label for="update_password_password" :value="__('New Password')" />
-            <x-text-input id="update_password_password" name="password" type="password" class="mt-1 block w-full" autocomplete="new-password" />
+            <x-text-input id="update_password_password" name="password" type="password" class="mt-1 block w-full text-black pr-10" autocomplete="new-password" />
             <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-2" />
+            <button type="button" onclick="togglePassword('update_password_password')" class="absolute right-2 top-9 text-gray-600 hover:text-gray-900">
+                👁️
+            </button>
         </div>
 
-        <div>
+        {{-- Confirm Password --}}
+        <div class="relative">
             <x-input-label for="update_password_password_confirmation" :value="__('Confirm Password')" />
-            <x-text-input id="update_password_password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full" autocomplete="new-password" />
+            <x-text-input id="update_password_password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full text-black pr-10" autocomplete="new-password" />
             <x-input-error :messages="$errors->updatePassword->get('password_confirmation')" class="mt-2" />
+            <button type="button" onclick="togglePassword('update_password_password_confirmation')" class="absolute right-2 top-9 text-gray-600 hover:text-gray-900">
+                👁️
+            </button>
         </div>
 
         <div class="flex items-center gap-4">
@@ -45,4 +57,12 @@
             @endif
         </div>
     </form>
+
+    {{-- Password Toggle Script --}}
+    <script>
+        function togglePassword(fieldId) {
+            const input = document.getElementById(fieldId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+    </script>
 </section>

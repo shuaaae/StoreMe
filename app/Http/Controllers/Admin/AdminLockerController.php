@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Models\LockerReservation;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AdminLockerController extends Controller // Make sure it extends Controller
 {
@@ -61,7 +62,7 @@ class AdminLockerController extends Controller // Make sure it extends Controlle
         : 0
 ),
 'payment_status' => $reservation->payment_status ?? null, // ✅ Add this line
-            'note' => $locker->note,
+            'note' => $locker->note ,
         ]);        
 }
 
@@ -210,5 +211,13 @@ public function reservationHistory(Request $request)
 
     return view('admin.reservations.index', compact('reservations'));
 }
+public function exportPDF()
+{
+    $reservations = \App\Models\LockerReservation::with('user', 'locker')->get();
 
+    $pdf = PDF::loadView('admin.reservations_pdf', compact('reservations'))
+              ->setPaper('A4', 'landscape');
+
+    return $pdf->download('reservation-history.pdf');
+}
 }

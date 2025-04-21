@@ -37,7 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // ✅ Static Pages
-Route::get('/loyalty-reward', fn () => view('loyalty'))->middleware(['auth', 'verified'])->name('loyalty');
+Route::get('/loyalty-reward', [LoyaltyController::class, 'showLoyaltyPage'])->middleware(['auth', 'verified'])->name('loyalty');
 Route::get('/contact-center', fn () => view('contact'))->middleware(['auth', 'verified'])->name('contact');
 
 // ✅ Email Verification
@@ -82,6 +82,9 @@ Route::prefix('admin')->group(function () {
         Route::post('/lockers/{locker}/end', [AdminLockerController::class, 'endReservation']);
         Route::patch('/lockers/{locker}/pay', [AdminLockerController::class, 'markAsPaid'])->name('admin.lockers.pay');
         Route::get('/admin/reservations', [AdminLockerController::class, 'reservationHistory'])->name('admin.reservations');
+        Route::get('/admin/lockers/{locker}', [AdminLockerController::class, 'show']);
+        Route::get('/reservations/export-pdf', [AdminLockerController::class, 'exportPDF'])->name('admin.reservations.export.pdf');
+
     });    
 });
 Route::middleware(['auth'])->group(function () {

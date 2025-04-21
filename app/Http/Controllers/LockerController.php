@@ -17,8 +17,7 @@ class LockerController extends Controller
         $userReservations = LockerReservation::where('user_id', auth()->id())
     ->where('status', '!=', 'cancelled') // ✅ Exclude cancelled reservations
     ->orderByDesc('reserved_at')
-    ->take(5)
-    ->get();
+    ->paginate(10);
     
         $userLocker = $lockers->firstWhere('user_id', auth()->id());
         $latestReservation = null; // ✅ Add this before any condition
